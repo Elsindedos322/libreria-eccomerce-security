@@ -1,0 +1,23 @@
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Base de datos SQLite
+*.sqlite3
+
+# Configuración local
+.env
+.vscode/
+.venv
+
+# Logs
+*.log
+
+# Archivos de Tailwind / Node
+node_modules/
+*.css.map
+
+# Salida de compilación de Tailwind (si usas salida en static/css/)
+static/css/*

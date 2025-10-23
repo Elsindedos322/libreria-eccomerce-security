@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ libro.titulo }} - Lecturama</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'book-cream': '#F5F2E8',
+                        'book-brown': '#8B4513',
+                        'book-dark': '#2C1810',
+                        'book-gold': '#DAA520'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-book-cream">
+    {% include 'partials/header.html' %}
+
+    <!-- Contenido Principal -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <!-- Titulo del Libro -->
+            <div class="bg-gradient-to-r from-book-brown to-book-gold px-8 py-6">
+                <h1 class="text-center text-3xl font-bold text-white">{{ libro.titulo }}</h1>
+            </div>
+
+            <!-- Contenido del Libro -->
+            <div class="p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <!-- Imagen del Libro -->
+                    <div class="text-center">
+                        {% if libro.imagen %}
+                            <img src="{{ libro.imagen.url }}" 
+                                 alt="{{ libro.titulo }}" 
+                                 class="w-full max-w-md mx-auto rounded-xl shadow-xl transition-transform duration-300 hover:scale-105">
+                        {% else %}
+                            <div class="w-full max-w-md mx-auto aspect-[3/4] bg-gradient-to-r from-book-brown to-book-gold rounded-xl shadow-xl flex items-center justify-center">
+                                <span class="text-white font-bold text-xl">Sin imagen</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Informacion del Libro -->
+                    <div class="space-y-6">
+                        <!-- Precio -->
+                        <div class="flex items-center p-6 bg-gradient-to-r from-book-cream to-white rounded-xl border-l-4 border-book-gold">
+                            <span class="font-semibold text-book-dark text-lg min-w-[120px]">Precio:</span>
+                            <span class="text-3xl font-bold text-book-gold">${{ libro.precio }}</span>
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="flex items-center p-6 bg-gradient-to-r from-book-cream to-white rounded-xl border-l-4 border-book-gold">
+                            <span class="font-semibold text-book-dark text-lg min-w-[120px]">Stock:</span>
+                            <span class="text-gray-700 text-lg">{{ libro.stock }} unidades</span>
+                        </div>
+
+                        <!-- Editorial -->
+                        <div class="flex items-center p-6 bg-gradient-to-r from-book-cream to-white rounded-xl border-l-4 border-book-gold">
+                            <span class="font-semibold text-book-dark text-lg min-w-[120px]">Editorial:</span>
+                            <span class="text-gray-700 text-lg">{{ libro.editorial }}</span>
+                        </div>
+
+                        <!-- Autor -->
+                        <div class="flex items-center p-6 bg-gradient-to-r from-book-cream to-white rounded-xl border-l-4 border-book-gold">
+                            <span class="font-semibold text-book-dark text-lg min-w-[120px]">Autores:</span>
+                            <span class="text-gray-700 text-lg">
+                                {% for autor in libro.autores.all %}
+                                    {{ autor.nombre }} {{ autor.apellido }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </span>
+                        </div>
+
+                        <!-- Selector de Cantidad y Agregar al Carrito -->
+                        {% if libro.stock > 0 %}
+                        <form action="{% url 'agregar_al_carrito' libro.id %}" method="post" class="pt-6" onsubmit="return validateQuantity()">
+                            {% csrf_token %}
+                            <!-- Selector de Cantidad -->
+                            <div class="mb-6 p-6 bg-gradient-to-r from-book-cream to-white rounded-xl border-l-4 border-book-gold">
+                                <label for="cantidad" class="block font-semibold text-book-dark text-lg mb-3">Cantidad:</label>
+                                <div class="flex items-center space-x-4">
+                                    <button type="button" onclick="decrementQuantity()" class="bg-book-gold hover:bg-book-brown text-white w-10 h-10 rounded-full font-bold text-lg transition-colors duration-200">-</button>
+                                    <input type="number" 
+                                           id="cantidad" 
+                                           name="cantidad" 
+                                           value="1" 
+                                           min="1" 
+                                           max="{{ libro.stock }}" 
+                                           data-stock="{{ libro.stock }}"
+                                           class="w-20 text-center text-xl font-semibold border-2 border-book-gold rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-book-gold">
+                                    <button type="button" onclick="incrementQuantity()" class="bg-book-gold hover:bg-book-brown text-white w-10 h-10 rounded-full font-bold text-lg transition-colors duration-200">+</button>
+                                    <span class="text-gray-600">de {{ libro.stock }} disponibles</span>
+                                </div>
+                            </div>
+
+                            <!-- Botón Agregar al Carrito -->
+                            <button type="submit" class="w-full bg-gradient-to-r from-book-brown to-book-gold text-white text-center py-4 px-8 rounded-full font-semibold text-xl transition-all duration-200 hover:shadow-lg hover:scale-105">
+                                Agregar al carrito
+                            </button>
+                        </form>
+                        {% else %}
+                        <div class="pt-6">
+                            <div class="w-full bg-gray-400 text-white text-center py-4 px-8 rounded-full font-semibold text-xl cursor-not-allowed">
+                                Sin stock disponible
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Descripcion -->
+                {% if libro.descripcion %}
+                <div class="mt-12 p-8 bg-gradient-to-r from-book-cream to-white rounded-xl border-l-4 border-book-gold">
+                    <h3 class="text-2xl font-semibold text-book-dark mb-4">Descripción:</h3>
+                    <p class="text-gray-700 leading-relaxed text-lg">{{ libro.descripcion }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Link -->
+                <div class="mt-8 text-center">
+                    <a href="/" class="inline-flex items-center text-book-gold hover:text-book-brown font-medium text-lg transition-colors">
+                        <span class="mr-2">←</span>
+                        Volver a la tienda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include 'partials/footer.html' %}
+
+    <script>
+        function incrementQuantity() {
+            const input = document.getElementById('cantidad');
+            const stockMax = parseInt(input.getAttribute('data-stock'));
+            const currentValue = parseInt(input.value);
+            if (currentValue < stockMax) {
+                input.value = currentValue + 1;
+            }
+        }
+        
+        function decrementQuantity() {
+            const input = document.getElementById('cantidad');
+            const currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+            }
+        }
+        
+        function validateQuantity() {
+            const input = document.getElementById('cantidad');
+            const stockMax = parseInt(input.getAttribute('data-stock'));
+            const value = parseInt(input.value);
+            
+            if (value > stockMax) {
+                alert('La cantidad no puede exceder el stock disponible (' + stockMax + ')');
+                return false;
+            }
+            if (value < 1) {
+                alert('La cantidad debe ser al menos 1');
+                return false;
+            }
+            return true;
+        }
+        
+        // Validar que el input no exceda el stock
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('cantidad');
+            if (input) {
+                input.addEventListener('input', function() {
+                    const stockMax = parseInt(this.getAttribute('data-stock'));
+                    const value = parseInt(this.value);
+                    if (value > stockMax) {
+                        this.value = stockMax;
+                    } else if (value < 1 || isNaN(value)) {
+                        this.value = 1;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

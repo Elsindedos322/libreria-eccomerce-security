@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nosotros - Lecturama</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { 'book-cream': '#F5F2E8', 'book-brown': '#8B4513', 'book-dark': '#2C1810', 'book-gold': '#DAA520' } } }
+    }
+  </script>
+</head>
+<body class="bg-book-cream">
+  {% include 'partials/header.html' %}
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <h1 class="text-3xl font-bold text-book-dark mb-6">Sobre Lecturama</h1>
+    <p class="text-gray-700 leading-7 mb-4">Somos una librería online apasionada por conectar lectores con historias increíbles. Creemos en el poder de los libros para transformar vidas.</p>
+    <div class="grid md:grid-cols-3 gap-6 mt-8">
+      <div class="bg-white rounded shadow p-6">
+        <h3 class="font-semibold text-book-dark mb-2">Misión</h3>
+        <p class="text-gray-600">Hacer accesible la lectura de calidad a todos, en cualquier lugar.</p>
+      </div>
+      <div class="bg-white rounded shadow p-6">
+        <h3 class="font-semibold text-book-dark mb-2">Visión</h3>
+        <p class="text-gray-600">Ser la librería digital favorita de Latinoamérica.</p>
+      </div>
+      <div class="bg-white rounded shadow p-6">
+        <h3 class="font-semibold text-book-dark mb-2">Valores</h3>
+        <p class="text-gray-600">Cercanía, honestidad, curiosidad y amor por el conocimiento.</p>
+      </div>
+    </div>
+  </div>
+  {% include 'partials/footer.html' %}
+</body>
+</html>

@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preguntas Frecuentes - Lecturama</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { 'book-cream': '#F5F2E8', 'book-brown': '#8B4513', 'book-dark': '#2C1810', 'book-gold': '#DAA520' } } }
+    }
+  </script>
+</head>
+<body class="bg-book-cream">
+  {% include 'partials/header.html' %}
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <h1 class="text-3xl font-bold text-book-dark mb-6">Preguntas Frecuentes</h1>
+    <div class="space-y-4">
+      <details class="bg-white rounded shadow p-4">
+        <summary class="font-medium cursor-pointer">¿Cuáles son los métodos de pago?</summary>
+        <p class="mt-2 text-gray-700">Aceptamos tarjetas de crédito y débito, y pagos en línea.</p>
+      </details>
+      <details class="bg-white rounded shadow p-4">
+        <summary class="font-medium cursor-pointer">¿Hacen envíos internacionales?</summary>
+        <p class="mt-2 text-gray-700">Sí, trabajamos con varias empresas de logística. Los costos varían según el destino.</p>
+      </details>
+      <details class="bg-white rounded shadow p-4">
+        <summary class="font-medium cursor-pointer">¿Cómo realizo una devolución?</summary>
+        <p class="mt-2 text-gray-700">Escríbenos desde la página de contacto con tu número de pedido.</p>
+      </details>
+    </div>
+  </div>
+  {% include 'partials/footer.html' %}
+</body>
+</html>

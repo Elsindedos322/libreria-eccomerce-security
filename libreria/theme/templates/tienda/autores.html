@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autores - Lecturama</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { 'book-cream': '#F5F2E8','book-brown': '#8B4513','book-dark': '#2C1810','book-gold': '#DAA520' } } } }
+  </script>
+</head>
+<body class="bg-book-cream">
+  {% include 'partials/header.html' %}
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <h1 class="text-3xl font-bold text-book-dark mb-6">Autores</h1>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {% for a in autores %}
+      <a href="{% url 'autor_detalle' a.id %}" class="border rounded p-4 bg-white hover:shadow">
+        <div class="font-medium">{{ a.nombre }} {{ a.apellido }}</div>
+      </a>
+      {% empty %}
+      <p>No hay autores.</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% include 'partials/footer.html' %}
+</body>
+</html>

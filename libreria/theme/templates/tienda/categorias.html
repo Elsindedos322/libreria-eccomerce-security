@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categorías - Lecturama</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { 'book-cream': '#F5F2E8','book-brown': '#8B4513','book-dark': '#2C1810','book-gold': '#DAA520' } } } }
+  </script>
+</head>
+<body class="bg-book-cream">
+  {% include 'partials/header.html' %}
+  <div class="max-w-7xl mx-auto px-6 py-10">
+    <h1 class="text-3xl font-bold text-book-dark mb-6">Categorías</h1>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {% for c in categorias %}
+      <a href="{% url 'categoria_detalle' c.id %}" class="border rounded p-4 hover:shadow bg-white">
+        <span class="font-medium">{{ c.nombre }}</span>
+      </a>
+      {% empty %}
+      <p>No hay categorías.</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% include 'partials/footer.html' %}
+</body>
+</html>

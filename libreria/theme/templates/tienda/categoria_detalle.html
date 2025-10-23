@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ categoria.nombre }} - Lecturama</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { 'book-cream': '#F5F2E8','book-brown': '#8B4513','book-dark': '#2C1810','book-gold': '#DAA520' } } } }
+  </script>
+</head>
+<body class="bg-book-cream">
+  {% include 'partials/header.html' %}
+  <div class="max-w-7xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-bold text-book-dark">{{ categoria.nombre }}</h1>
+      <a href="{% url 'categorias' %}" class="text-book-gold">← Ver todas</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+      {% for libro in libros %}
+      <a href="{% url 'libro_detail' libro.id %}" class="block group">
+        <div class="relative overflow-hidden rounded-lg shadow-md">
+          {% if libro.imagen %}
+          <img src="{{ libro.imagen.url }}" class="w-full h-64 object-cover" alt="{{ libro.titulo }}">
+          {% else %}
+          <div class="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500">Sin imagen</div>
+          {% endif %}
+        </div>
+        <div class="mt-3">
+          <h3 class="font-semibold text-book-dark group-hover:text-book-gold">{{ libro.titulo }}</h3>
+          <p class="text-gray-600 text-sm">{{ libro.autores.all|join:", " }}</p>
+          <p class="font-bold text-book-gold mt-1">$ {{ libro.precio }}</p>
+        </div>
+      </a>
+      {% empty %}
+      <p>No hay libros en esta categoría.</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% include 'partials/footer.html' %}
+</body>
+</html>

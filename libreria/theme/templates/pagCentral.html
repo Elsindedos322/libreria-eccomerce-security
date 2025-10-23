@@ -1,0 +1,369 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecturama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'book-cream': '#F5F2E8',
+                        'book-brown': '#8B4513',
+                        'book-dark': '#2C1810',
+                        'book-gold': '#DAA520'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Ocultar scrollbar del carrusel en navegadores comunes */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-book-cream">
+    {% include 'partials/header.html' %}
+
+    <!-- Hero Banner -->
+    <section class="relative overflow-hidden bg-gradient-to-r from-book-brown to-book-gold">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
+                    30% DE DESCUENTO
+                </h1>
+                <p class="text-xl md:text-2xl text-white mb-8">
+                    Del 5 al 30 de abril
+                </p>
+                <button class="bg-white text-book-dark px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    Ver ofertas
+                </button>
+            </div>
+        </div>
+        <!-- Decorative elements -->
+        <div class="absolute top-10 left-10 w-16 h-16 bg-white bg-opacity-20 rounded-full"></div>
+        <div class="absolute bottom-10 right-10 w-24 h-24 bg-white bg-opacity-10 rounded-full"></div>
+    </section>
+
+    <!-- Book Sections -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Catálogo dinámico -->
+        <section id="catalogo" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-book-dark">Catálogo</h2>
+                <a href="/tienda/" class="text-book-gold hover:text-book-brown transition-colors">Ver todos →</a>
+            </div>
+            {% if libros and libros.object_list %}
+            <div class="relative">
+                <!-- Botones izquierda/derecha -->
+                <button type="button" aria-label="Anterior" class="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white shadow rounded-full p-2"
+                        onclick="scrollCatalog(-1)">
+                    <svg class="w-6 h-6 text-book-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button type="button" aria-label="Siguiente" class="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white shadow rounded-full p-2"
+                        onclick="scrollCatalog(1)">
+                    <svg class="w-6 h-6 text-book-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+
+                <!-- Carrusel horizontal con snap -->
+                <div id="catalogo-track" class="no-scrollbar overflow-x-auto scroll-smooth flex gap-6 pr-2 snap-x snap-mandatory">
+                    {% for libro in libros %}
+                    <div class="card snap-start flex-none w-64">
+                        <a href="/libros/{{ libro.id }}/" class="group block">
+                            <div class="relative overflow-hidden rounded-lg shadow-lg group-hover:shadow-xl transition-all duration-300">
+                                {% if libro.imagen %}
+                                    <img src="{{ libro.imagen.url }}" alt="{{ libro.titulo }}" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
+                                {% else %}
+                                    <div class="w-full h-64 bg-book-brown/10 flex items-center justify-center">
+                                        <span class="text-book-brown font-semibold">Sin imagen</span>
+                                    </div>
+                                {% endif %}
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></div>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="font-semibold text-book-dark group-hover:text-book-gold transition-colors line-clamp-2">{{ libro.titulo }}</h3>
+                                <p class="text-gray-600 text-sm">{% for a in libro.autores.all %}{{ a.nombre }} {{ a.apellido }}{% if not forloop.last %}, {% endif %}{% empty %}Autor desconocido{% endfor %}</p>
+                                <div class="mt-2 flex items-center justify-between">
+                                    <p class="font-bold text-book-gold">${{ libro.precio }}</p>
+                                    {% if libro.stock == 0 %}
+                                        <span class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">Agotado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        <!-- Add to cart form -->
+                        <form action="{% url 'agregar_al_carrito' libro.id %}" method="post" class="mt-3 flex items-center gap-2" onsubmit="event.stopPropagation();">
+                            {% csrf_token %}
+                            <div class="flex items-center gap-1">
+                                <button type="button" class="px-2 py-1 rounded bg-white border hover:bg-gray-50 {% if libro.stock == 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                                        {% if libro.stock == 0 %}disabled title="Sin stock"{% endif %}
+                                        onclick="const i=this.parentElement.querySelector('input[name=\'cantidad\']'); i.value=Math.max(1, (+i.value||1)-1)">−</button>
+                                <input type="number" name="cantidad" value="1" min="1" max="100" class="w-16 px-2 py-1 border rounded text-center" {% if libro.stock == 0 %}disabled{% endif %} />
+                                <button type="button" class="px-2 py-1 rounded bg-white border hover:bg-gray-50 {% if libro.stock == 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                                        {% if libro.stock == 0 %}disabled title="Sin stock"{% endif %}
+                                        onclick="const i=this.parentElement.querySelector('input[name=\'cantidad\']'); i.value=Math.min(100, (+i.value||1)+1)">+</button>
+                            </div>
+                            <button type="submit" class="flex-1 bg-book-gold text-white py-2 px-3 rounded-lg hover:bg-yellow-600 transition-colors text-sm {% if libro.stock == 0 %}opacity-50 cursor-not-allowed hover:bg-book-gold{% endif %}"
+                                    {% if libro.stock == 0 %}disabled title="Sin stock"{% endif %}>
+                                {% if libro.stock == 0 %}Sin stock{% else %}Agregar al carrito{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="mt-10 flex justify-center gap-2">
+                {% if libros.has_previous %}
+                    <a href="?page={{ libros.previous_page_number }}" class="px-3 py-2 rounded bg-white border text-book-dark hover:bg-gray-50">Anterior</a>
+                {% endif %}
+                <span class="px-3 py-2 text-sm text-gray-600">Página {{ libros.number }} de {{ libros.paginator.num_pages }}</span>
+                {% if libros.has_next %}
+                    <a href="?page={{ libros.next_page_number }}" class="px-3 py-2 rounded bg-white border text-book-dark hover:bg-gray-50">Siguiente</a>
+                {% endif %}
+            </div>
+            {% else %}
+                <p class="text-gray-600">No hay libros para mostrar.</p>
+            {% endif %}
+        </section>
+
+        <!-- Novedades Section -->
+        <section id="new" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-book-dark">Novedades</h2>
+                <a href="#" class="text-book-gold hover:text-book-brown transition-colors">Ver todos →</a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div class="group cursor-pointer" onclick="goToBookDetail('mi-portada-libro')">
+                    <div class="relative overflow-hidden rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
+                        <img src="https://edit.org/images/cat/portadas-libros-big-2019101610.jpg" 
+                             alt="Mi Portada de Libro" 
+                             class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
+                        <span class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 text-xs rounded-full">¡Nuevo!</span>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="font-semibold text-book-dark group-hover:text-book-gold transition-colors">Mi Portada de Libro</h3>
+                        <p class="text-gray-600 text-sm">Autor Ejemplo</p>
+                        <p class="font-bold text-book-gold mt-2">$28.00</p>
+                        <button onclick="event.stopPropagation(); addToCart('mi-portada-libro')" class="mt-2 w-full bg-book-gold text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors text-sm">
+                            Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quinta Estación Section -->
+        <section class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-book-dark">Ciencia Ficción</h2>
+                <a href="#" class="text-book-gold hover:text-book-brown transition-colors">Ver todos →</a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div class="group cursor-pointer" onclick="goToBookDetail('quinta-estacion')">
+                    <div class="relative overflow-hidden rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
+                        <img src="https://images.ecestaticos.com/PIK0kKxTNRVBMbAp-kQooTdcLnI=/2x1:1667x2560/1440x1920/filters:fill(white):format(jpg)/f.elconfidencial.com%2Foriginal%2F78f%2F762%2Ff46%2F78f762f46de147f15e6fbda967974551.jpg" 
+                             alt="Quinta Estación" 
+                             class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="font-semibold text-book-dark group-hover:text-book-gold transition-colors">Quinta Estación</h3>
+                        <p class="text-gray-600 text-sm">N.K. Jemisin</p>
+                        <p class="font-bold text-book-gold mt-2">$32.00</p>
+                        <button onclick="event.stopPropagation(); addToCart('quinta-estacion')" class="mt-2 w-full bg-book-gold text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors text-sm">
+                            Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- No ficción Section -->
+        <section id="nonfiction" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-book-dark">No ficción</h2>
+                <a href="#" class="text-book-gold hover:text-book-brown transition-colors">Ver todos →</a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div class="group cursor-pointer" onclick="goToBookDetail('yo-soy-malala')">
+                    <div class="relative overflow-hidden rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
+                        <img src="https://hips.hearstapps.com/vader-prod.s3.amazonaws.com/1715701901-autobiografia-malala-66438877dde9f.jpg?crop=1xw:1xh;center,top&resize=980:*" 
+                             alt="Yo soy Malala" 
+                             class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="font-semibold text-book-dark group-hover:text-book-gold transition-colors">Yo soy Malala</h3>
+                        <p class="text-gray-600 text-sm">Malala Yousafzai</p>
+                        <p class="font-bold text-book-gold mt-2">$25.00</p>
+                        <button onclick="event.stopPropagation(); addToCart('yo-soy-malala')" class="mt-2 w-full bg-book-gold text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors text-sm">
+                            Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Infantil Section -->
+        <section id="kids" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-book-dark">Libros Infantiles</h2>
+                <a href="#" class="text-book-gold hover:text-book-brown transition-colors">Ver todos →</a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div class="group cursor-pointer" onclick="goToBookDetail('cuentos-roald-dahl')">
+                    <div class="relative overflow-hidden rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
+                        <img src="https://www.crisol.com.pe/media/catalog/product/cache/f6d2c62455a42b0d712f6c919e880845/9/7/9786125020208_8t8qmxx6r0hkrpjj.jpg" 
+                             alt="Cuentos en Verso para Niños Perversos" 
+                             class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="font-semibold text-book-dark group-hover:text-book-gold transition-colors">Cuentos en Verso</h3>
+                        <p class="text-gray-600 text-sm">Roald Dahl</p>
+                        <p class="font-bold text-book-gold mt-2">$18.00</p>
+                        <button onclick="event.stopPropagation(); addToCart('cuentos-roald-dahl')" class="mt-2 w-full bg-book-gold text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors text-sm">
+                            Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Juvenil Section -->
+        <section id="teen" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-book-dark">Literatura Juvenil</h2>
+                <a href="#" class="text-book-gold hover:text-book-brown transition-colors">Ver todos →</a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div class="group cursor-pointer" onclick="goToBookDetail('a-dos-metros')">
+                    <div class="relative overflow-hidden rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
+                        <img src="https://hips.hearstapps.com/vader-prod.s3.amazonaws.com/1740746707-51oXDQhF8ZL._SL500_.jpg?crop=1xw:0.996xh;center,top&resize=980:*" 
+                             alt="A Dos Metros de Ti" 
+                             class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="font-semibold text-book-dark group-hover:text-book-gold transition-colors">A Dos Metros de Ti</h3>
+                        <p class="text-gray-600 text-sm">Rachael Lippincott</p>
+                        <p class="font-bold text-book-gold mt-2">$22.00</p>
+                        <button onclick="event.stopPropagation(); addToCart('a-dos-metros')" class="mt-2 w-full bg-book-gold text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors text-sm">
+                            Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter Section -->
+        <section class="bg-book-dark rounded-2xl p-8 text-center text-white mb-16">
+            <h3 class="text-2xl font-bold mb-4">¡Mantente al día con las últimas novedades!</h3>
+            <p class="mb-6 text-gray-300">Suscríbete a nuestro boletín y recibe recomendaciones personalizadas</p>
+            <div class="max-w-md mx-auto flex gap-4">
+                <input type="email" placeholder="Tu email" class="flex-1 px-4 py-2 rounded-lg text-book-dark">
+                <button class="bg-book-gold text-book-dark px-6 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition-colors">
+                    Suscribirse
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    {% include 'partials/footer.html' %}
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Function to navigate to book detail page
+        function goToBookDetail(bookId) {
+            // In a real Django app, this would be something like:
+            // window.location.href = `/libros/${bookId}/`;
+            
+            // For demo purposes, we'll simulate the navigation
+            alert(`Navegando a la página de detalles del libro: ${bookId}\n\nEn tu aplicación Django, esto sería:\nwindow.location.href = '/libros/' + bookId + '/';`);
+        }
+
+        // Function to add item to cart
+        function addToCart(bookId) {
+            // In a real Django app, this would make an AJAX call to add the item
+            // fetch('/agregar_al_carrito/' + bookId + '/', { method: 'POST', ... })
+            
+            // Update cart counter
+            const cartCounter = document.querySelector('.absolute.-top-2.-right-2');
+            if (cartCounter) {
+                let currentCount = parseInt(cartCounter.textContent);
+                cartCounter.textContent = currentCount + 1;
+            }
+            
+            // Show success message
+            showAddToCartMessage(bookId);
+        }
+
+        // Function to show add to cart success message
+        function showAddToCartMessage(bookId) {
+            // Create temporary notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    ¡Libro agregado al carrito!
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Newsletter form submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = this.querySelector('input[type="text"]').value;
+            if (email) {
+                alert('¡Gracias por suscribirte! En tu aplicación Django, esto enviaría el email al backend.');
+                this.querySelector('input[type="text"]').value = '';
+            }
+        });
+
+        // Scroll del carrusel de catálogo
+        function scrollCatalog(dir) {
+            const track = document.getElementById('catalogo-track');
+            if (!track) return;
+            const card = track.querySelector('.card');
+            const cardWidth = card ? (card.offsetWidth + 24) : 260; // 24 ~ gap-6
+            const amount = cardWidth * 4 * dir; // desplazar 4 tarjetas
+            track.scrollBy({ left: amount, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto - Lecturama</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { 'book-cream': '#F5F2E8', 'book-brown': '#8B4513', 'book-dark': '#2C1810', 'book-gold': '#DAA520' } } }
+    }
+  </script>
+</head>
+<body class="bg-book-cream">
+  {% include 'partials/header.html' %}
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <h1 class="text-3xl font-bold text-book-dark mb-6">Contáctanos</h1>
+    <form method="post" class="bg-white rounded shadow p-6 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Nombre</label>
+        <input class="mt-1 w-full border rounded px-3 py-2" name="nombre" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Email</label>
+        <input type="email" class="mt-1 w-full border rounded px-3 py-2" name="email" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Mensaje</label>
+        <textarea class="mt-1 w-full border rounded px-3 py-2" name="mensaje" rows="5" required></textarea>
+      </div>
+      <button class="bg-book-gold text-white px-4 py-2 rounded">Enviar</button>
+    </form>
+  </div>
+  {% include 'partials/footer.html' %}
+</body>
+</html>

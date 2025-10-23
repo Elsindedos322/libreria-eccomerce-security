@@ -1,0 +1,41 @@
+{% load static %}
+<footer class="bg-book-dark text-white mt-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center mb-4">
+          <img class="h-8 w-8 mr-2" src="{% static 'img/logo_ecommerce_libreria.png' %}" alt="Lecturama" />
+          <span class="text-xl font-bold">Lecturama</span>
+        </div>
+        <p class="text-gray-300">Tu librería online de confianza. Descubre miles de libros para todos los gustos.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4">Explora</h4>
+        <ul class="space-y-2 text-gray-300">
+          <li><a href="/tienda/" class="hover:text-book-gold transition">Tienda</a></li>
+          <li><a href="/categorias/" class="hover:text-book-gold transition">Categorías</a></li>
+          <li><a href="/autores/" class="hover:text-book-gold transition">Autores</a></li>
+          <li><a href="/editoriales/" class="hover:text-book-gold transition">Editoriales</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4">Ayuda</h4>
+        <ul class="space-y-2 text-gray-300">
+          <li><a href="/contacto/" class="hover:text-book-gold transition">Contacto</a></li>
+          <li><a href="/faq/" class="hover:text-book-gold transition">FAQ</a></li>
+          <li><a href="/nosotros/" class="hover:text-book-gold transition">Nosotros</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4">Suscríbete</h4>
+        <form class="flex flex-col sm:flex-row gap-3">
+          <input class="flex-1 h-11 px-4 rounded text-book-dark" placeholder="Tu email" />
+          <button class="h-11 px-5 bg-book-gold hover:bg-yellow-600 rounded text-white font-medium">Unirme</button>
+        </form>
+      </div>
+    </div>
+    <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
+      <p>&copy; 2025 Lecturama. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>

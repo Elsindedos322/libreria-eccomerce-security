@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 • Página no encontrada</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'book-cream': '#F5F2E8',
+            'book-brown': '#8B4513',
+            'book-dark': '#2C1810',
+            'book-gold': '#DAA520'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-book-cream min-h-screen flex flex-col">
+  {% include 'partials/header.html' %}
+
+  <main class="flex-1">
+    <section class="max-w-3xl mx-auto px-6 py-16 text-center">
+      <div class="mb-8">
+        <span class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-book-brown/10">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10 text-book-brown">
+            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.75 6a.75.75 0 0 1 1.5 0v6a.75.75 0 0 1-1.5 0V8.25ZM12 16.5a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25Z" clip-rule="evenodd" />
+          </svg>
+        </span>
+      </div>
+      <h1 class="text-4xl font-bold text-book-dark mb-3">404 - Página no encontrada</h1>
+      <p class="text-gray-600 mb-8">La URL que intentaste abrir no existe o fue movida. Verifica la dirección o vuelve al inicio.</p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="{% url 'home' %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-book-gold text-white font-semibold hover:bg-yellow-600 transition-colors">
+          Ir al inicio
+        </a>
+        <a href="{% url 'tienda' %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-white border border-book-brown text-book-brown font-semibold hover:bg-book-brown hover:text-white transition-colors">
+          Ver la tienda
+        </a>
+      </div>
+
+      <div class="mt-12 max-w-xl mx-auto">
+        <form action="{% url 'tienda' %}" method="get" class="flex gap-3">
+          <input type="text" name="q" placeholder="Buscar libros..." class="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-book-gold">
+          <button class="px-6 py-3 rounded-lg bg-book-brown text-white font-semibold hover:bg-book-dark transition-colors">Buscar</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  {% include 'partials/footer.html' %}
+</body>
+</html>

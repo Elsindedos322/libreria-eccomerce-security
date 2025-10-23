@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white shadow-lg rounded-lg p-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Panel de Administración</h1>
+        
+        <!-- Verificación de rol -->
+        <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+            <p><strong>Usuario:</strong> {{ user.username }}</p>
+            <p><strong>Rol:</strong> {{ user.profile.role }}</p>
+            <p><strong>Permisos:</strong> Administrador completo</p>
+        </div>
+        
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-blue-100 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-blue-800">Total Usuarios</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ total_usuarios }}</p>
+            </div>
+            <div class="bg-green-100 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-green-800">Total Libros</h3>
+                <p class="text-3xl font-bold text-green-600">{{ total_libros }}</p>
+            </div>
+            <div class="bg-yellow-100 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-yellow-800">Carritos Activos</h3>
+                <p class="text-3xl font-bold text-yellow-600">{{ total_carritos }}</p>
+            </div>
+        </div>
+        
+        <!-- Usuarios recientes -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Usuarios Recientes</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-300">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                            <th class="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                            <th class="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Registro</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for usuario in usuarios_recientes %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ usuario.username }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ usuario.email }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if usuario.profile.role == 'ADMIN' %}bg-red-100 text-red-800
+                                    {% elif usuario.profile.role == 'MODERATOR' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ usuario.profile.role }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ usuario.date_joined|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Acciones administrativas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Acciones Disponibles</h3>
+                <ul class="space-y-2">
+                    <li>✅ Gestionar todos los usuarios</li>
+                    <li>✅ Crear, editar y eliminar libros</li>
+                    <li>✅ Ver estadísticas completas</li>
+                    <li>✅ Acceso a logs de seguridad</li>
+                    <li>✅ Configuración del sistema</li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">API Endpoints</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">GET /api/admin/dashboard/</code></li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">GET /api/admin/users/</code></li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">POST /api/books/create/</code></li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">PUT /api/books/{id}/update/</code></li>
+                    <li><code class="bg-gray-200 px-2 py-1 rounded">DELETE /api/books/{id}/delete/</code></li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Botón de prueba de API -->
+        <div class="mt-8 text-center">
+            <button onclick="testAPI()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Probar API con JWT
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function testAPI() {
+    try {
+        // Obtener token JWT del localStorage o solicitar login
+        let token = localStorage.getItem('jwt_token');
+        
+        if (!token) {
+            alert('No hay token JWT. Realizando login automático...');
+            // En una implementación real, aquí se redirigiría al login
+            return;
+        }
+        
+        const response = await fetch('/api/admin/dashboard/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert(`API Test Exitoso!\nTotal users: ${data.total_users}\nTotal books: ${data.total_books}\nRol: ${data.user_role}`);
+        } else {
+            alert(`Error en API: ${data.error || 'Error desconocido'}`);
+        }
+    } catch (error) {
+        alert(`Error de conexión: ${error.message}`);
+    }
+}
+</script>
+{% endblock %}

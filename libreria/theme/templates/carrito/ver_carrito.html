@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tu Carrito - Lecturama</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo_ecommerce_libreria.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'book-cream': '#F5F2E8',
+                        'book-brown': '#8B4513',
+                        'book-dark': '#2C1810',
+                        'book-gold': '#DAA520'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .cart-item {
+            background: linear-gradient(135deg, #fef3c7 0%, white 100%);
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .cart-item:hover {
+            border-color: #DAA520;
+            box-shadow: 0 4px 12px rgba(218, 165, 32, 0.2);
+        }
+        .cart-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-book-cream">
+    {% include 'partials/header.html' %}
+
+    <!-- Contenido Principal - Carrito -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="cart-card overflow-hidden">
+            <!-- Cabecera del carrito -->
+            <div class="bg-gradient-to-r from-book-brown to-book-gold px-8 py-6">
+                <h2 class="text-center text-3xl font-bold text-white">Tu carrito</h2>
+            </div>
+
+            <!-- Contenido del carrito -->
+            <div class="p-8">
+                {% if items %}
+                    <div class="space-y-6">
+                        {% for item in items %}
+                            <div class="cart-item p-6 rounded-xl">
+                                <div class="flex flex-col lg:flex-row items-center gap-6">
+                                    <!-- Imagen del libro -->
+                                    <div class="flex-shrink-0">
+                                        {% if item.libro.imagen %}
+                                            <img src="{{ item.libro.imagen.url }}" 
+                                                 alt="{{ item.libro.titulo }}" 
+                                                 class="w-20 h-28 object-cover rounded-lg shadow-md">
+                                        {% else %}
+                                            <div class="w-20 h-28 bg-gradient-to-r from-book-brown to-book-gold rounded-lg shadow-md flex items-center justify-center">
+                                                <span class="text-white text-xs font-bold text-center">Sin imagen</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Información del libro -->
+                                    <div class="flex-1 text-center lg:text-left">
+                                        <h3 class="text-xl font-semibold text-book-dark mb-2">{{ item.libro.titulo }}</h3>
+                                        <p class="text-gray-600 mb-2">Precio unitario: ${{ item.libro.precio }}</p>
+                                        <p class="text-sm text-gray-500">Stock disponible: {{ item.libro.stock }}</p>
+                                    </div>
+
+                                    <!-- Información de cantidad -->
+                                    <div class="flex flex-col items-center space-y-2">
+                                        <div class="text-center">
+                                            <p class="text-sm font-medium text-book-dark">Cantidad:</p>
+                                            <span class="text-lg font-bold text-book-gold">{{ item.cantidad }}</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500">Precio unitario: ${{ item.libro.precio }}</span>
+                                    </div>
+
+                                    <!-- Subtotal y acciones -->
+                                    <div class="flex flex-col items-center space-y-3">
+                                        <div class="text-center">
+                                            <p class="text-sm text-gray-600">Subtotal:</p>
+                                            <span class="text-2xl font-bold text-book-gold">${{ item.subtotal }}</span>
+                                        </div>
+                                        <a href="{% url 'eliminar_item' item.id %}" 
+                                           class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm">
+                                            Eliminar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Total -->
+                    <div class="mt-8 bg-gradient-to-r from-book-brown to-book-gold rounded-xl p-6 text-center">
+                        <p class="text-3xl font-bold text-white">Total: ${{ total }}</p>
+                    </div>
+
+                    <!-- Boton de pago -->
+                    <div class="mt-6 text-center">
+                        <button class="bg-book-dark hover:bg-opacity-80 text-white px-12 py-4 rounded-full font-semibold text-lg transition-all duration-200 hover:shadow-lg">
+                            Proceder al pago
+                        </button>
+                    </div>
+
+                {% else %}
+                    <!-- CArrito vacio -->
+                    <div class="text-center py-16">
+                        <div class="text-8xl mb-6">🛒</div>
+                        <p class="text-2xl text-gray-600 mb-8">Tu carrito está vacío</p>
+                        <a href="/" class="inline-block bg-gradient-to-r from-book-brown to-book-gold text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200 hover:shadow-lg">
+                            Explorar libros
+                        </a>
+                    </div>
+                {% endif %}
+
+                <!-- Link -->
+                <div class="mt-8 text-center">
+                    <a href="/" class="inline-flex items-center text-book-gold hover:text-book-brown font-medium text-lg transition-colors">
+                        <span class="mr-2">←</span>
+                        Volver a la tienda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include 'partials/footer.html' %}
+</body>
+</html>

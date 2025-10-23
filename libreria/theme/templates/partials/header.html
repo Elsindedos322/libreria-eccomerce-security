@@ -1,0 +1,30 @@
+{% load static %}
+<header class="bg-white/90 backdrop-blur shadow-md sticky top-0 z-50">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <a href="/" class="flex items-center hover:opacity-90 transition-opacity">
+        <img class="h-9 w-9 mr-3" src="{% static 'img/logo_ecommerce_libreria.png' %}" alt="Lecturama" />
+        <span class="text-2xl font-extrabold tracking-tight text-book-dark">Lecturama</span>
+      </a>
+      <div class="hidden md:flex items-center gap-6">
+        <a href="/tienda/" class="text-book-dark hover:text-book-gold font-medium">Tienda</a>
+        <a href="/categorias/" class="text-book-dark hover:text-book-gold font-medium">Categorías</a>
+        <a href="/autores/" class="text-book-dark hover:text-book-gold font-medium">Autores</a>
+        <a href="/editoriales/" class="text-book-dark hover:text-book-gold font-medium">Editoriales</a>
+        <a href="/nosotros/" class="text-book-dark hover:text-book-gold font-medium">Nosotros</a>
+        <a href="/contacto/" class="text-book-dark hover:text-book-gold font-medium">Contacto</a>
+        <a href="/faq/" class="text-book-dark hover:text-book-gold font-medium">FAQ</a>
+      </div>
+      <div class="hidden md:flex items-center gap-4">
+        <a href="/accounts/login/" class="text-book-dark hover:text-book-gold">Iniciar sesión</a>
+        <a href="/registro/" class="inline-flex items-center bg-book-gold hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium transition">Registrarse</a>
+        <a href="/carrito/" title="Carrito" class="relative text-book-dark hover:text-book-gold">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222 1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path></svg>
+        </a>
+      </div>
+      <button class="md:hidden p-2 rounded hover:bg-gray-100" aria-label="Abrir menú">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>

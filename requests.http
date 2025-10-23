@@ -1,0 +1,55 @@
+### VS Code REST Client examples (install the extension 'REST Client')
+
+@host = http://127.0.0.1:8000
+@json = application/json
+
+### Register
+POST {{host}}/api/auth/register/
+Content-Type: {{json}}
+
+{
+  "username": "demo",
+  "email": "demo@example.com",
+  "password": "Demo123!",
+  "password_confirm": "Demo123!",
+  "first_name": "Demo",
+  "last_name": "User"
+}
+
+### Login
+# @name login
+POST {{host}}/api/auth/login/
+Content-Type: {{json}}
+
+{
+  "email": "demo@example.com",
+  "password": "Demo123!"
+}
+
+### Use token to get profile
+@access = {{login.response.body.$.tokens.access}}
+GET {{host}}/api/auth/profile/
+Authorization: Bearer {{access}}
+
+### Admin dashboard (should be 403 for normal user)
+GET {{host}}/api/admin/dashboard/
+Authorization: Bearer {{access}}
+
+### Promote role via management command (run in terminal)
+# python manage.py set_user_role --username demo --role ADMIN
+
+### Admin dashboard (200 OK as ADMIN)
+GET {{host}}/api/admin/dashboard/
+Authorization: Bearer {{access}}
+
+### Books list (public)
+GET {{host}}/api/books/?search=python
+
+### Rate limiting demo: run the next request multiple times quickly to hit 429
+POST {{host}}/api/auth/login/
+Content-Type: {{json}}
+
+{
+  "email": "demo@example.com",
+  "password": "wrong"
+}
