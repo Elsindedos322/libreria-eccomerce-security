@@ -24,11 +24,14 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r /app/requirements
 # Copy project
 COPY . /app/
 
-# Collect static files
-ENV DJANGO_SETTINGS_MODULE=libreria.libreria.settings
-RUN python manage.py collectstatic --noinput || echo "collectstatic failed (may require local build assets)"
+# Copy entrypoint and make it executable
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
+# Runtime settings
+ENV DJANGO_SETTINGS_MODULE=libreria.libreria.settings
 ENV PORT 8080
 
-# Use gunicorn for production
+# Entrypoint will run migrations and collectstatic, then exec the CMD
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["gunicorn", "libreria.wsgi:application", "--bind", ":8080", "--workers", "2"]

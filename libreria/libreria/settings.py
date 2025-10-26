@@ -169,6 +169,44 @@ STATICFILES_DIRS = [
     BASE_DIR / 'theme' / 'static',
 ]
 
+# Optional: Google Cloud Storage for static and media files
+# Configure the following environment variables in Cloud Run or locally
+# GS_BUCKET_NAME - name of the GCS bucket
+# GS_STATIC_LOCATION - optional prefix for static files (default: 'static')
+# GS_MEDIA_LOCATION - optional prefix for media files (default: 'media')
+GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
+GS_STATIC_LOCATION = os.environ.get('GS_STATIC_LOCATION', 'static')
+GS_MEDIA_LOCATION = os.environ.get('GS_MEDIA_LOCATION', 'media')
+
+if GS_BUCKET_NAME:
+    # Enable django-storages if a bucket is provided
+    if 'storages' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('storages')
+
+    STORAGES = {
+        'default': {
+            'BACKEND': 'storages.backends.gcloud.GoogleCloudStorage',
+            'OPTIONS': {
+                'bucket_name': GS_BUCKET_NAME,
+            }
+        },
+        'staticfiles': {
+            'BACKEND': 'storages.backends.gcloud.GoogleCloudStorage',
+            'OPTIONS': {
+                'bucket_name': GS_BUCKET_NAME,
+                'location': GS_STATIC_LOCATION,
+            }
+        },
+    }
+
+    STATIC_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_STATIC_LOCATION}/'
+    MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_MEDIA_LOCATION}/'
+
+    # For local testing, set GOOGLE_APPLICATION_CREDENTIALS to the service account JSON
+    # that has access to the bucket. In Cloud Run the service account attached to the
+    # service needs Storage Object Admin role for write access.
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
