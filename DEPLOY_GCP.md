@@ -69,3 +69,65 @@ Notas y recomendaciones:
 - Añade `gunicorn` y `psycopg2-binary` (ya añadidos a requirements.txt).
 - Comprueba `SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE` y HSTS sólo en producción.
 
+## Secret Manager (opcional pero recomendado)
+
+Guardar secretos sensibles (SECRET_KEY, DATABASE_URL, credenciales de GCS si las necesitas) en Secret Manager es una práctica recomendable. A continuación tienes comandos y un pequeño flujo para crear secretos y dar acceso a Cloud Run.
+
+1) Crear secretos en Secret Manager
+
+En PowerShell (reemplaza valores por los tuyos):
+
+```powershell
+# Crear secretos
+gcloud secrets create django-secret-key --replication-policy="automatic"
+echo -n "YOUR_LONG_SECRET_KEY" | gcloud secrets versions add django-secret-key --data-file=-
+
+gcloud secrets create django-database-url --replication-policy="automatic"
+echo -n "postgres://USER:PASSWORD@/DBNAME?host=/cloudsql/PROJECT:REGION:INSTANCE" | gcloud secrets versions add django-database-url --data-file=-
+
+# (Opcional) credenciales JSON para GCS
+gcloud secrets create gcs-service-account-json --replication-policy="automatic"
+gcloud secrets versions add gcs-service-account-json --data-file="path\to\service-account.json"
+```
+
+2) Dar permiso a la cuenta de servicio de Cloud Run para acceder a los secretos
+
+Identifica la cuenta de servicio que usará Cloud Run (por ejemplo: `PROJECT_NUMBER-compute@developer.gserviceaccount.com` o una creada por ti). Luego otorga el rol `roles/secretmanager.secretAccessor`:
+
+```powershell
+gcloud projects get-iam-policy PROJECT_ID --format=json
+
+# Ejemplo para dar acceso
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+```
+
+3) Usar secretos desde Cloud Run
+
+Al desplegar con `gcloud run deploy` puedes mapear secrets a variables de entorno usando `--set-secrets`:
+
+```powershell
+gcloud run deploy mi-django-app `
+  --image REGION-docker.pkg.dev/PROJECT/REPO/django-app:v1 `
+  --platform managed `
+  --region REGION `
+  --allow-unauthenticated `
+  --set-secrets SECRET_KEY=django-secret-key:latest,DATABASE_URL=django-database-url:latest `
+  --update-env-vars DJANGO_SETTINGS_MODULE=libreria.libreria.settings,GS_BUCKET_NAME=mi-proyecto-django-assets
+```
+
+Esto inyectará las versiones más recientes de `django-secret-key` y `django-database-url` como variables de entorno dentro del contenedor.
+
+4) Nota sobre GCS credentials
+
+Si usas la cuenta de servicio que Cloud Run ya proporciona (o una cuenta dedicada) y le das permisos de Storage Object Admin sobre el bucket, normalmente no necesitas subir el JSON a Secret Manager. En cambio, si necesitas que el contenedor use un service-account JSON (por ejemplo para local testing), puedes almacenar ese JSON en Secret Manager y cargarlo en el contenedor como variable o fichero temporal al inicio.
+
+5) Pequeño helper PowerShell para crear los secretos (repo)
+
+He incluido un script de ejemplo `scripts\gcp_create_secrets.ps1` que automatiza la creación de los tres secretos (SECRET_KEY, DATABASE_URL, opcional GCS JSON). Revisa y ajusta antes de ejecutarlo.
+
+---
+
+Si quieres, puedo añadir el script `scripts\gcp_create_secrets.ps1` ahora y también un ejemplo de `cloudbuild.yaml` que use Secret Manager en Cloud Build para despliegues automáticos. ¿Lo agrego ahora?
+
