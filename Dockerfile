@@ -1,37 +1,49 @@
-# Dockerfile for deploying Django app to Cloud Run
-FROM python:3.11-slim
+# Multi-stage Dockerfile: builder, django_test_stage (CI tests), production
 
-# Avoids writing pyc files
+############################
+# Stage: builder
+############################
+FROM python:3.11-slim as builder
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-
 WORKDIR /app
 
-# System deps for psycopg2 and pillow
+# System deps for psycopg2 and Pillow
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     gcc \
     libjpeg-dev \
     zlib1g-dev \
-    netcat \
   && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better cache
 COPY requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy project
+############################
+# Stage: django_test_stage (used by CI to run tests)
+############################
+FROM builder as django_test_stage
+WORKDIR /app
 COPY . /app/
 
-# Copy entrypoint and make it executable
+# Note: tests will be executed by CI by running this image and invoking manage.py test
+
+############################
+# Stage: production
+############################
+FROM builder as production
+WORKDIR /app
+COPY . /app/
+
+# Copy and make entrypoint executable
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-# Runtime settings
+# Collect static (may be non-fatal if assets require node tooling)
 ENV DJANGO_SETTINGS_MODULE=libreria.libreria.settings
-ENV PORT 8080
+RUN python manage.py collectstatic --noinput || echo "collectstatic failed (build may require node/tailwind)"
 
-# Entrypoint will run migrations and collectstatic, then exec the CMD
+ENV PORT 8080
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["gunicorn", "libreria.wsgi:application", "--bind", ":8080", "--workers", "2"]
+CMD ["gunicorn", "libreria.wsgi:application", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4"]

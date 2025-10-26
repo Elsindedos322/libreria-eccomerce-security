@@ -1,0 +1,62 @@
+name: CI/CD - Build, Test & Push to AR
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
+env:
+  PROJECT_ID: your-gcp-project-id # REPLACE
+  AR_REPO_NAME: my-django-repo    # REPLACE
+  AR_REGION: us-central1          # REPLACE
+  IMAGE_NAME: libreria-ecommerce  # REPLACE
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # --- Authenticate to GCP via Workload Identity Federation ---
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/${{ env.PROJECT_ID }}/locations/global/workloadIdentityPools/github-pool/providers/github' # REPLACE with actual provider id
+          service_account: 'github-ci-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com' # REPLACE with your CI service account
+
+      # --- Django Tests (within a docker test stage) ---
+      - name: Run Django Tests
+        run: |
+          docker build -t test-image --target django_test_stage .
+          docker run --rm test-image sh -c "python manage.py test"
+        env:
+          SECRET_KEY: fake-secret
+          DATABASE_URL: sqlite:///db.sqlite3
+
+      - name: Configure Docker to use Artifact Registry
+        run: gcloud auth configure-docker ${{ env.AR_REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        id: build-image
+        env:
+          IMAGE_TAG: latest
+          FULL_IMAGE_NAME: ${{ env.AR_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO_NAME }}/${{ env.IMAGE_NAME }}
+        run: |
+          docker build --platform linux/amd64 -t $FULL_IMAGE_NAME:$IMAGE_TAG .
+          docker push $FULL_IMAGE_NAME:$IMAGE_TAG
