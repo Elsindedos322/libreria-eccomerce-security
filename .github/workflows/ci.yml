@@ -40,6 +40,20 @@ jobs:
           workload_identity_provider: 'projects/${{ env.PROJECT_ID }}/locations/global/workloadIdentityPools/github-pool/providers/github' # REPLACE with actual provider id
           service_account: 'github-ci-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com' # REPLACE with your CI service account
 
+      - name: Read secrets from Secret Manager
+        id: read-secrets
+        run: |
+          # Read SECRET_KEY and DATABASE_URL from Secret Manager and export to the job environment
+          echo "Reading secrets from Secret Manager..."
+          SECRET_KEY=$(gcloud secrets versions access latest --secret="django-secret-key" --project="${{ env.PROJECT_ID }}")
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="django-database-url" --project="${{ env.PROJECT_ID }}")
+          echo "SECRET_KEY=${SECRET_KEY}" >> $GITHUB_ENV
+          echo "DATABASE_URL=${DATABASE_URL}" >> $GITHUB_ENV
+          # Enforce strict secret check in CI
+          echo "RAISE_ON_INSECURE_SECRET=1" >> $GITHUB_ENV
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ env.PROJECT_ID }}
+
       # --- Django Tests (within a docker test stage) ---
       - name: Run Django Tests
         run: |
