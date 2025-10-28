@@ -17,6 +17,10 @@ env:
   AR_REPO_NAME: my-django-repo    # REPLACE
   AR_REGION: us-central1          # REPLACE
   IMAGE_NAME: libreria-ecommerce  # REPLACE
+  # Optional: set this to 'true' to auto-deploy to Cloud Run after push
+  DEPLOY_TO_CLOUD_RUN: 'false'
+  CLOUD_RUN_SERVICE_NAME: my-django-app
+  GS_BUCKET_NAME: my-proyecto-django-assets
 
 jobs:
   build-and-test:
@@ -74,3 +78,25 @@ jobs:
         run: |
           docker build --platform linux/amd64 -t $FULL_IMAGE_NAME:$IMAGE_TAG .
           docker push $FULL_IMAGE_NAME:$IMAGE_TAG
+
+      - name: Deploy to Cloud Run (optional)
+        if: env.DEPLOY_TO_CLOUD_RUN == 'true'
+        env:
+          FULL_IMAGE_NAME: ${{ env.AR_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO_NAME }}/${{ env.IMAGE_NAME }}
+        run: |
+          echo "Deploying $FULL_IMAGE_NAME:latest to Cloud Run service ${CLOUD_RUN_SERVICE_NAME} in ${AR_REGION}..."
+          gcloud run deploy ${CLOUD_RUN_SERVICE_NAME} \
+            --image ${FULL_IMAGE_NAME}:latest \
+            --platform managed \
+            --region ${AR_REGION} \
+            --allow-unauthenticated \
+            --set-secrets SECRET_KEY=django-secret-key:latest,DATABASE_URL=django-database-url:latest \
+            --update-env-vars DJANGO_SETTINGS_MODULE=libreria.libreria.settings,GS_BUCKET_NAME=${GS_BUCKET_NAME}
+
+      - name: Clear secrets from job environment
+        if: always()
+        run: |
+          # Overwrite variables in GITHUB_ENV to avoid accidental reuse in later steps
+          echo "SECRET_KEY=" >> $GITHUB_ENV
+          echo "DATABASE_URL=" >> $GITHUB_ENV
+          echo "RAISE_ON_INSECURE_SECRET=" >> $GITHUB_ENV
