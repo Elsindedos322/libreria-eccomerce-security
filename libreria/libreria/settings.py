@@ -118,15 +118,37 @@ WSGI_APPLICATION = 'libreria.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# Database configuration: prefer DATABASE_URL (e.g. Cloud SQL) but fall back to local SQLite
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        conn_health_check=True,
-    )
-}
+# Priority:
+# 1. If DATABASE_URL is provided (e.g. Cloud Run / Cloud SQL socket) use dj_database_url
+# 2. Else, if DB_NAME is provided, configure Postgres using DB_* environment variables
+# 3. Else fall back to local SQLite for development
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_check=True,
+        )
+    }
+elif os.environ.get('DB_NAME'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+            'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+            conn_max_age=600,
+            conn_health_check=True,
+        )
+    }
 
 
 # Password validation
