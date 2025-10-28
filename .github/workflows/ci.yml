@@ -44,19 +44,33 @@ jobs:
           workload_identity_provider: 'projects/${{ env.PROJECT_ID }}/locations/global/workloadIdentityPools/github-pool/providers/github' # REPLACE with actual provider id
           service_account: 'github-ci-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com' # REPLACE with your CI service account
 
-      - name: Read secrets from Secret Manager
+      - name: Read secrets from Secret Manager (with fallback to GitHub Secrets)
         id: read-secrets
         run: |
-          # Read SECRET_KEY and DATABASE_URL from Secret Manager and export to the job environment
-          echo "Reading secrets from Secret Manager..."
-          SECRET_KEY=$(gcloud secrets versions access latest --secret="django-secret-key" --project="${{ env.PROJECT_ID }}")
-          DATABASE_URL=$(gcloud secrets versions access latest --secret="django-database-url" --project="${{ env.PROJECT_ID }}")
+          set -euo pipefail
+          echo "Attempting to read secrets from Secret Manager..."
+          # Try to read via gcloud; if it fails, fall back to GitHub Actions Secrets
+          if gcloud --quiet secrets versions access latest --secret="django-secret-key" --project="${{ env.PROJECT_ID }}" >/dev/null 2>&1; then
+            SECRET_KEY=$(gcloud secrets versions access latest --secret="django-secret-key" --project="${{ env.PROJECT_ID }}")
+            DATABASE_URL=$(gcloud secrets versions access latest --secret="django-database-url" --project="${{ env.PROJECT_ID }}")
+            echo "Read secrets from Secret Manager."
+          else
+            echo "Could not read secrets from Secret Manager — falling back to GitHub repository secrets."
+            # GitHub repository secrets should be set as a fallback: SECRET_KEY, DATABASE_URL
+            # Use the GitHub Actions expression to safely pass secrets into the script via env
+            SECRET_KEY="$GITHUB_SECRET_KEY_FALLBACK"
+            DATABASE_URL="$GITHUB_DATABASE_URL_FALLBACK"
+          fi
+          # Export to job environment
           echo "SECRET_KEY=${SECRET_KEY}" >> $GITHUB_ENV
           echo "DATABASE_URL=${DATABASE_URL}" >> $GITHUB_ENV
           # Enforce strict secret check in CI
           echo "RAISE_ON_INSECURE_SECRET=1" >> $GITHUB_ENV
         env:
           CLOUDSDK_CORE_PROJECT: ${{ env.PROJECT_ID }}
+          # Provide GitHub repo secrets as environment variables for fallback use inside the script
+          GITHUB_SECRET_KEY_FALLBACK: ${{ secrets.SECRET_KEY }}
+          GITHUB_DATABASE_URL_FALLBACK: ${{ secrets.DATABASE_URL }}
 
       # --- Django Tests (within a docker test stage) ---
       - name: Run Django Tests
